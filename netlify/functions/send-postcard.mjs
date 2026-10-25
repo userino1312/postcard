@@ -27,10 +27,12 @@ export default async (request) => {
     return json(400, { error: "Please enter a valid recipient email address." });
   }
 
-  const postcard = typeof body.postcard === "string" ? body.postcard : "";
-  const match = postcard.match(/^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/);
-  if (!match || match[1].length > 2_000_000) {
-    return json(400, { error: "The postcard image is missing or too large. Please try a smaller photo." });
+  const postcardUrl = typeof body.postcardUrl === "string" ? body.postcardUrl : "";
+  let parsedPostcardUrl;
+  try { parsedPostcardUrl = new URL(postcardUrl); }
+  catch { return json(400, { error: "The interactive postcard link is missing. Please try sending again." }); }
+  if (parsedPostcardUrl.protocol !== "https:" || postcardUrl.length > 250_000) {
+    return json(400, { error: "The postcard link is invalid or too large. Please try again." });
   }
 
   const senderName = typeof body.fromName === "string" ? body.fromName.trim().slice(0, 100) : "";
@@ -48,8 +50,8 @@ export default async (request) => {
         from,
         to: [to],
         subject: "A little postcard for you",
-        html: `<div style="font-family:Georgia,serif;color:#263b36;line-height:1.6"><p>Hello!</p><p>${noteHtml}</p><p>${greeting} — Littlepost</p><p style="color:#7b7b70;font-size:12px">Sent with Littlepost</p></div>`,
-        attachments: [{ filename: "littlepost-postcard.jpg", content: match[1] }],
+        html: `<div style="font-family:Georgia,serif;color:#263b36;line-height:1.7;max-width:560px"><p>Hello!</p><p>${noteHtml}</p><p>${greeting} — Littlepost</p><p style="margin:28px 0"><a href="${escapeHtml(postcardUrl)}" style="display:inline-block;padding:14px 22px;background:#263b36;color:#fff8e7;text-decoration:none;font-family:Arial,sans-serif;font-weight:bold;border-radius:3px">Open your postcard ↗</a></p><p style="font-size:14px;color:#64756d">Your postcard opens with the picture side first. Tap it to turn it over, or wait a few seconds for it to flip automatically. Only one side is shown at a time.</p><p style="color:#7b7b70;font-size:12px">Sent with Littlepost</p></div>`,
+        text: `Hello!\n\n${note || "I made you a little postcard!"}\n\n${greeting} — Littlepost\n\nOpen your interactive postcard: ${postcardUrl}\n\nIt opens on the picture side. Tap to flip it, or wait a few seconds for it to turn over.`,
       }),
     });
   } catch {
