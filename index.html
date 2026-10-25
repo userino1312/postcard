@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Littlepost — make a postcard</title>
+<style>
+:root{--ink:#263b36;--muted:#64756d;--paper:#fff8e7;--line:#d9c9a6;--accent:#d85f3e;--teal:#2f7772;--mustard:#e7b94e;--cream:#f3e8cf;--shadow:#263b36}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background-color:#f5efdF;background-image:linear-gradient(to right,transparent 0,transparent 72px,rgba(190,91,79,.46) 73px,rgba(190,91,79,.46) 75px,transparent 76px),repeating-linear-gradient(to bottom,#f8f2e2 0px,#f8f2e2 29px,rgba(105,157,184,.34) 30px,#f8f2e2 31px),radial-gradient(rgba(115,91,54,.09) .65px,transparent .8px);background-size:100% 100%,100% 31px,5px 5px;background-attachment:fixed;color:var(--ink);font-family:"Courier New",Courier,monospace}body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:linear-gradient(90deg,rgba(255,255,255,.24),transparent 16%,transparent 85%,rgba(125,93,49,.035));} .shell{position:relative;z-index:1}
+.shell{max-width:1180px;margin:auto;padding:24px 20px 44px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;gap:12px;border-bottom:3px double var(--ink);padding:0 0 14px}
+.brand{font-size:25px;font-weight:900;letter-spacing:-.08em;text-transform:uppercase}.brand span{color:var(--accent)}
+.tag{font:700 10px "Courier New",monospace;color:var(--teal);letter-spacing:.13em;text-transform:uppercase;text-align:right}
+.intro{text-align:center;max-width:700px;margin:0 auto 28px;padding:10px 12px 20px;background:rgba(248,242,226,.72);border:1px solid rgba(137,119,84,.24);box-shadow:3px 3px 0 rgba(38,59,54,.08)}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(38px,5vw,58px);font-weight:900;letter-spacing:-.06em;margin:0 0 10px;text-transform:uppercase;text-shadow:3px 3px 0 var(--mustard)}
+.intro p{font:12px/1.7 "Courier New",monospace;color:var(--muted);margin:0;letter-spacing:.015em}
+.workspace{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);gap:22px;align-items:start}
+.stage{background:#d7e3d6;border:2px solid var(--ink);border-radius:2px;padding:clamp(14px,3vw,25px);box-shadow:7px 7px 0 var(--ink)}
+.stage-top{display:flex;justify-content:space-between;gap:8px;font:700 10px "Courier New",monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--ink);margin-bottom:15px}
+.scene{perspective:1300px;width:100%;aspect-ratio:1.48;min-height:250px}
+.card{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.7,.2,1);cursor:pointer}
+.card.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;overflow:hidden;border:2px solid var(--ink);border-radius:2px;backface-visibility:hidden;background:var(--paper);box-shadow:4px 4px 0 #263b3620}
+.front{padding:9px}
+.art{position:relative;width:100%;height:100%;overflow:hidden;background:linear-gradient(160deg,#d8eee5 0%,#a9d9d4 43%,#4f9eae 44%,#246a82 72%,#f5c99a 73%,#f9d9ac 100%)}
+.uploaded-photo{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:sepia(.14) saturate(.88)}.art.has-photo .uploaded-photo{display:block}.art.has-photo .sun{display:none}.art.has-photo:after{background:linear-gradient(0deg,#17241b9c,transparent 68%)}.photo-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.photo-actions input{flex:1;min-width:0}.art:before{content:"";position:absolute;inset:0;z-index:1;opacity:.16;background-image:radial-gradient(#263b36 1px,transparent 1px);background-size:5px 5px;pointer-events:none}
+.art:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#17241b80,transparent 58%);pointer-events:none}
+.sun{position:absolute;width:clamp(55px,10vw,100px);height:clamp(55px,10vw,100px);border-radius:50%;right:14%;top:13%;background:#ffe4a0;border:2px solid #263b36;box-shadow:0 0 0 8px #ffe4a044}
+.front-copy{position:absolute;z-index:3;left:8%;right:8%;bottom:8%;color:white;text-shadow:2px 2px 0 #263b36}.subtitle{display:none;font:700 clamp(12px,1.7vw,20px) "Courier New",monospace;letter-spacing:.04em;line-height:1.35;overflow-wrap:anywhere;background:rgba(38,59,54,.62);padding:9px 12px;width:fit-content;max-width:100%}
+.back{transform:rotateY(180deg);padding:6%;display:grid;grid-template-columns:1.1fr .9fr;gap:7%;background:repeating-linear-gradient(0deg,#fff8e7,#fff8e7 27px,#f0e3c8 28px)}
+.message-area{display:flex;flex-direction:column;min-width:0}.back-label{font:700 10px "Courier New",monospace;color:var(--accent);text-transform:uppercase;letter-spacing:.2em;margin-bottom:14px}
+.message{font-size:clamp(13px,1.7vw,18px);line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.signature{margin-top:auto;padding-top:12px;font-family:Georgia,serif;font-size:clamp(12px,1.5vw,16px);font-style:italic}
+.address-area{border-left:2px dashed var(--line);padding-left:10%;display:flex;flex-direction:column;min-width:0}
+.stamp{align-self:flex-end;width:40px;height:50px;border:2px dotted var(--accent);color:var(--accent);display:grid;place-items:center;font-size:22px;margin-bottom:18px;transform:rotate(4deg);background:#fff1d4}
+.address-line{border-bottom:1px solid #c9b994;min-height:26px;font:11px "Courier New",monospace;color:#536257;padding:6px 0;overflow-wrap:anywhere}
+.postmark{margin-top:auto;font:700 8px "Courier New",monospace;letter-spacing:.08em;color:#a18e68;text-align:right}
+.controls{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:18px}
+button{border:2px solid var(--ink);border-radius:2px;padding:11px 15px;background:var(--ink);color:#fff8e7;font:700 11px "Courier New",monospace;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;box-shadow:3px 3px 0 #263b36;transition:transform .12s,box-shadow .12s}
+button:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 #263b36}button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #263b36}
+button.secondary{background:var(--paper);color:var(--ink)}button.accent{background:var(--accent);color:white}
+.panel{background:var(--paper);border:2px solid var(--ink);border-radius:2px;padding:22px;box-shadow:7px 7px 0 var(--ink)}
+.panel h3{font-family:Georgia,"Times New Roman",serif;font-size:25px;font-weight:900;text-transform:uppercase;letter-spacing:-.04em;margin:0 0 5px}
+.sub{font:11px/1.6 "Courier New",monospace;color:var(--muted);margin:0 0 18px}
+.field{display:block;margin:0 0 14px}.field span{display:block;font:700 10px "Courier New",monospace;text-transform:uppercase;letter-spacing:.1em;color:var(--teal);margin-bottom:6px}
+input,textarea,select{width:100%;border:1.5px solid #b8aa8b;background:#fffdf5;border-radius:2px;padding:10px 11px;color:var(--ink);font:13px/1.5 "Courier New",monospace;box-shadow:inset 2px 2px 0 #263b3608}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--mustard);outline-offset:1px}textarea{min-height:90px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.section{background:#f3e8cf;border:1.5px dashed #b8aa8b;border-radius:2px;padding:13px;margin-bottom:16px}
+.section-title{font:900 12px "Courier New",monospace;text-transform:uppercase;margin-bottom:4px}
+.hint{font:10px/1.6 "Courier New",monospace;color:var(--muted);margin:0 0 12px}
+.send-box{border-top:2px dashed var(--line);padding-top:15px;margin-top:18px}.send-box button{width:100%;margin-top:8px}
+.status{display:none;margin-top:12px;padding:12px;background:#e3ebdc;border:1.5px solid var(--teal);font:11px/1.6 "Courier New",monospace;overflow-wrap:anywhere}
+.status.show{display:block}.status.error{background:#f9e8e2;color:#8a3527;border-color:var(--accent)}.status a{overflow-wrap:anywhere;color:inherit;display:block;margin-top:8px}
+footer{text-align:center;color:#7d816d;background:rgba(248,242,226,.72);padding:8px;font:10px "Courier New",monospace;text-transform:uppercase;letter-spacing:.12em;margin-top:28px}
+[data-theme="sunset"] .art{background:linear-gradient(155deg,#f6b8a4 0%,#e88e94 40%,#9e7598 68%,#384e73 100%)}
+[data-theme="garden"] .art{background:linear-gradient(135deg,#f8e8d2 0%,#e8c5bc 46%,#b7cbb0 47%,#6e9c7a 100%)}
+[data-theme="night"] .art{background:radial-gradient(ellipse at 72% 20%,#526e9c 0%,#283e68 35%,#172641 100%)}[data-theme="night"] .sun{background:#f4eed5;box-shadow:0 0 0 10px #f4eed51c}
+[data-theme="citrus"] .art{background:linear-gradient(135deg,#f6e8a8 0%,#f8c86c 52%,#9fbd76 53%,#54856a 100%)}
+[data-theme="mountain"] .art{background:linear-gradient(160deg,#c7e0e9 0%,#eff0dc 48%,#8da9a0 49%,#4e766f 68%,#2c514d 69%)}
+[data-theme="minimal"] .art{background:linear-gradient(135deg,#f5e9d6,#e7d7bf)}[data-theme="minimal"] .sun{background:#d5a47f;box-shadow:none}[data-theme="minimal"] [data-theme="minimal"] .front-copy{color:#3d493d;text-shadow:none}[data-theme="minimal"] .subtitle{background:rgba(255,248,231,.82)}[data-theme="minimal"] .art:after{background:linear-gradient(0deg,#f5e9d6cc,transparent 75%)}
+body.viewer-mode .intro{max-width:760px;margin-bottom:22px}body.viewer-mode .workspace{display:block;max-width:850px;margin:0 auto}body.viewer-mode .panel{display:none!important}body.viewer-mode .stage{max-width:850px;margin:0 auto;padding:clamp(16px,4vw,34px);box-shadow:8px 8px 0 var(--ink)}body.viewer-mode .scene{min-height:280px}body.viewer-mode .stage-top{margin-bottom:18px}body.viewer-mode footer{margin-top:24px}body.viewer-mode .brand{pointer-events:none}body.viewer-mode .controls{justify-content:center}body.viewer-mode .intro h1{text-shadow:3px 3px 0 var(--mustard)}
+@media(max-width:780px){.workspace{grid-template-columns:1fr}.stage{padding:15px}.panel{padding:18px}.scene{min-height:220px}}
+@media(max-width:420px){.shell{padding:18px 11px 30px}.scene{min-height:210px}.back{padding:5%;gap:5%}.message{font-size:12px}.address-area{padding-left:7%}.stamp{width:30px;height:38px;font-size:17px}header{align-items:flex-start;flex-direction:column}.tag{text-align:left}}
+@media print{body{background:white}.shell>header,.intro,.panel,.stage-top,.controls,footer{display:none!important}.workspace{display:block}.stage{padding:0;background:white;border:0;box-shadow:none}.scene{width:9.4in;height:auto;aspect-ratio:1.48;min-height:0;margin:0 auto}.card{display:grid;grid-template-columns:1fr 1fr;gap:.18in;transform:none!important}.face{position:relative;inset:auto;display:block!important;transform:none!important;backface-visibility:visible;box-shadow:none;border:1px solid #ddd;width:100%;height:100%}.back{display:grid}@page{size:landscape;margin:.3in}}
+</style></head>
+<body><main class="shell">
+<header><div class="brand">little<span>post</span></div><div class="tag">A small note, sent with love</div></header>
+<section class="intro"><h1>A little postcard.</h1><p>Choose a picture or illustration, add an optional caption, and write a note.</p></section>
+<div class="workspace"><section class="stage"><div class="stage-top"><b>Your postcard</b><span id="sideLabel">Front side · click to flip</span></div>
+<div class="scene"><div class="card" id="card" tabindex="0" role="button" aria-label="Flip postcard">
+<div class="face front"><div class="art" id="art" data-theme="coast"><img id="uploadedPhoto" class="uploaded-photo" alt="Your uploaded postcard photo"><div class="sun"></div><div class="front-copy"><div class="subtitle" id="captionPreview"></div></div></div></div>
+<div class="face back"><div class="message-area"><div class="back-label">A little note</div><div class="message" id="messagePreview">Hello, lovely you.
+
+I saw this and thought of you. Sending a little sunshine your way.</div><div class="signature" id="senderPreview">With love, Me</div></div><div class="address-area"><div class="stamp">✿</div><div class="address-line" id="recipientPreview">For someone special</div><div class="address-line"></div><div class="address-line"></div><div class="postmark">MADE WITH LOVE · LITTLEPOST</div></div></div></div></div>
+<div class="controls"><button class="secondary" id="flipBtn">Flip postcard ↻</button><button class="secondary" id="printBtn">Print / save PDF</button><button class="secondary" id="jpgBtn">Download JPG</button></div></section>
+<section class="panel"><h3>Make it yours</h3><p class="sub">Every change appears on the postcard straight away.</p>
+<div class="section"><div class="section-title">Design the front</div><p class="hint">Choose an illustration or upload your own photo. Add a caption only if you want one.</p>
+<label class="field"><span>Your own picture (optional)</span><input id="photoUpload" type="file" accept="image/*"></label><div class="photo-actions"><button class="secondary" id="removePhotoBtn" type="button">Remove photo</button><span class="hint" id="photoHint" style="margin:0">Your photo is included in the postcard link.</span></div>
+<label class="field"><span>Illustration style</span><select id="theme"><option value="coast">Mediterranean coast</option><option value="sunset">Peachy sunset</option><option value="garden">Wildflower garden</option><option value="night">Starry night</option><option value="citrus">Citrus summer</option><option value="mountain">Mountain getaway</option><option value="minimal">Minimalist paper</option></select></label>
+<label class="field"><span>Optional front caption</span><input id="caption" maxlength="90" placeholder="Add a short caption, or leave blank"></label></div>
+<label class="field"><span>Your message</span><textarea id="message">Hello, lovely you.
+
+I saw this and thought of you. Sending a little sunshine your way.</textarea></label>
+<div class="two"><label class="field"><span>From</span><input id="sender" maxlength="100" value="Me"></label><label class="field"><span>To</span><input id="recipient" maxlength="100" value="someone special"></label></div>
+<div class="send-box"><label class="field"><span>Recipient's email address</span><input id="recipientEmail" type="email" autocomplete="email" placeholder="friend@example.com"></label><button class="accent" id="createBtn">Create postcard link ↗</button><button class="accent" id="emailBtn" type="button">Send postcard by email ↗</button><label class="field" aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden"><span>Leave this field empty</span><input id="website" type="text" tabindex="-1" autocomplete="off"></label><p class="hint" style="margin:10px 0 0">Littlepost will email the postcard as a JPG attachment. Enter the recipient above and click Send. (Email sending must be enabled in the site settings.)</p><div class="status" id="status" aria-live="polite"></div></div>
+</section></div><footer>Littlepost · made with a little love · free to use</footer></main>
+<script>
+const $=id=>document.getElementById(id);let flipped=false;let photoData="";
+const fields=["theme","caption","message","sender","recipient"];
+function paint(){ $("art").dataset.theme=$("theme").value;$("art").classList.toggle("has-photo",!!photoData);$("uploadedPhoto").src=photoData||"";const caption=$("caption").value.trim();$("captionPreview").textContent=caption;$("captionPreview").style.display=caption?"block":"none";$("messagePreview").textContent=$("message").value;$("senderPreview").textContent="With love, "+($("sender").value||"…");$("recipientPreview").textContent="For "+($("recipient").value||"someone special");}
+fields.forEach(id=>$(id).addEventListener("input",paint));
+$("photoUpload").addEventListener("change",()=>{const file=$("photoUpload").files&&$("photoUpload").files[0];if(!file)return;if(!file.type.startsWith("image/")){showStatus("Please choose an image file.",true);return;}const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const max=900,scale=Math.min(1,max/Math.max(img.width,img.height));const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));const ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,canvas.width,canvas.height);photoData=canvas.toDataURL("image/jpeg",.72);paint();$("photoHint").textContent="Photo added · included in your share link";showStatus("Photo added! Create a postcard link to share the picture with your recipient.");};img.onerror=()=>showStatus("That picture couldn't be opened. Please try another image.",true);img.src=reader.result;};reader.onerror=()=>showStatus("Couldn't read that file. Please try again.",true);reader.readAsDataURL(file);});
+$("removePhotoBtn").addEventListener("click",()=>{photoData="";$("photoUpload").value="";$("photoHint").textContent="No photo selected";paint();});
+function flip(){flipped=!flipped;$("card").classList.toggle("flipped",flipped);$("sideLabel").textContent=flipped?"Back side · click to flip":"Front side · click to flip";}
+$("flipBtn").addEventListener("click",flip);$("card").addEventListener("click",flip);$("card").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip();}});$("printBtn").addEventListener("click",()=>window.print());
+function drawWrapped(ctx,text,x,y,maxWidth,lineHeight,maxLines=30){
+ const paragraphs=String(text||"").split("\n");let lines=[];
+ for(const para of paragraphs){if(!para){lines.push("");continue;}let line="";for(const word of para.split(/\s+/)){const test=line?line+" "+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word;}else line=test;}if(line)lines.push(line);}
+ lines=lines.slice(0,maxLines);lines.forEach((line,i)=>ctx.fillText(line,x,y+i*lineHeight));return y+lines.length*lineHeight;
+}
+async function makePostcardJpg(){
+ paint();const canvas=document.createElement("canvas");canvas.width=1800;canvas.height=640;const ctx=canvas.getContext("2d");
+ ctx.fillStyle="#f5efdf";ctx.fillRect(0,0,1800,640);
+ for(let y=0;y<640;y+=28){ctx.strokeStyle="rgba(105,157,184,.24)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(1800,y);ctx.stroke();}
+ ctx.strokeStyle="rgba(190,91,79,.48)";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(28,0);ctx.lineTo(28,640);ctx.stroke();
+ const x1=55,y=40,w=820,h=560,x2=925;
+ for(const x of [x1,x2]){ctx.fillStyle="#fff8e7";ctx.fillRect(x,y,w,h);ctx.strokeStyle="#263b36";ctx.lineWidth=4;ctx.strokeRect(x,y,w,h);}
+ const ax=x1+14,ay=y+14,aw=w-28,ah=h-28,theme=$("theme").value;
+ const palettes={coast:["#d8eee5","#a9d9d4","#246a82"],sunset:["#f6b8a4","#e88e94","#384e73"],garden:["#f8e8d2","#e8c5bc","#6e9c7a"],night:["#526e9c","#283e68","#172641"],citrus:["#f6e8a8","#f8c86c","#54856a"],mountain:["#c7e0e9","#eff0dc","#2c514d"],minimal:["#f5e9d6","#e7d7bf","#cba98c"]};const pal=palettes[theme]||palettes.coast;
+ const grad=ctx.createLinearGradient(ax,ay,ax+aw,ay+ah);grad.addColorStop(0,pal[0]);grad.addColorStop(.52,pal[1]);grad.addColorStop(1,pal[2]);ctx.fillStyle=grad;ctx.fillRect(ax,ay,aw,ah);
+ if(photoData){await new Promise(resolve=>{const im=new Image();im.onload=()=>{const scale=Math.max(aw/im.width,ah/im.height),iw=im.width*scale,ih=im.height*scale;ctx.save();ctx.beginPath();ctx.rect(ax,ay,aw,ah);ctx.clip();ctx.drawImage(im,ax+(aw-iw)/2,ay+(ah-ih)/2,iw,ih);ctx.restore();resolve();};im.onerror=resolve;im.src=photoData;});}
+ ctx.fillStyle="rgba(20,32,28,.12)";ctx.fillRect(ax,ay,aw,ah);
+ if(!photoData){ctx.fillStyle="#ffe4a0";ctx.beginPath();ctx.arc(ax+aw*.79,ay+ah*.22,48,0,Math.PI*2);ctx.fill();}
+ const caption=$("caption").value.trim();
+ if(caption){ctx.fillStyle="rgba(38,59,54,.72)";ctx.fillRect(ax+24,ay+ah-102,aw-48,76);ctx.fillStyle="#fff8e9";ctx.font="bold 28px 'Courier New',monospace";ctx.textAlign="left";drawWrapped(ctx,caption,ax+42,ay+ah-56,aw-84,34,2);}
+ const bx=x2+14,by=y+14,bw=w-28,bh=h-28;ctx.fillStyle="#fff8e7";ctx.fillRect(bx,by,bw,bh);for(let ly=by+55;ly<by+bh;ly+=38){ctx.strokeStyle="#f0e3c8";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(bx,ly);ctx.lineTo(bx+bw,ly);ctx.stroke();}
+ ctx.strokeStyle="#c9b994";ctx.lineWidth=3;ctx.setLineDash([8,8]);ctx.beginPath();ctx.moveTo(bx+bw*.61,by+15);ctx.lineTo(bx+bw*.61,by+bh-15);ctx.stroke();ctx.setLineDash([]);
+ ctx.textAlign="left";ctx.fillStyle="#d85f3e";ctx.font="bold 22px 'Courier New',monospace";ctx.fillText("A LITTLE NOTE",bx+32,by+46);ctx.fillStyle="#263b36";ctx.font="24px 'Courier New',monospace";drawWrapped(ctx,$("message").value,bx+32,by+90,bw*.53-52,34,10);ctx.fillStyle="#263b36";ctx.font="italic 24px Georgia,serif";ctx.fillText("With love, "+($("sender").value||""),bx+32,by+bh-30);
+ ctx.fillStyle="#fff1d4";ctx.strokeStyle="#d85f3e";ctx.lineWidth=3;ctx.fillRect(bx+bw-92,by+24,58,72);ctx.strokeRect(bx+bw-92,by+24,58,72);ctx.fillStyle="#d85f3e";ctx.font="32px Georgia,serif";ctx.fillText("✿",bx+bw-80,by+70);ctx.fillStyle="#536257";ctx.font="18px 'Courier New',monospace";drawWrapped(ctx,"For "+($("recipient").value||"someone special"),bx+bw*.66,by+155,bw*.30,26,3);ctx.fillStyle="#a18e68";ctx.font="bold 13px 'Courier New',monospace";ctx.fillText("MADE WITH LOVE · LITTLEPOST",bx+bw*.64,by+bh-25);
+ return await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",.92));
+}
+async function downloadJpg(){const blob=await makePostcardJpg();if(!blob){showStatus("Could not create the JPG. Please try again.",true);return null;}const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="littlepost-postcard.jpg";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);return new File([blob],"littlepost-postcard.jpg",{type:"image/jpeg"});}
+$("jpgBtn").addEventListener("click",async()=>{try{await downloadJpg();showStatus("Your postcard JPG has been downloaded. Attach littlepost-postcard.jpg to an email.");}catch(e){showStatus("Could not create the JPG. Please try again.",true);}});
+function pack(){const obj={v:2,p:photoData,t:$("theme").value,c:$("caption").value,n:$("message").value,s:$("sender").value,r:$("recipient").value};return btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
+function showStatus(msg,err=false){$("status").textContent=msg;$("status").classList.add("show");$("status").classList.toggle("error",err);}
+function readCard(){try{const hash=location.hash.slice(1);if(!hash)return;const raw=decodeURIComponent(escape(atob(hash.replace(/-/g,"+").replace(/_/g,"/"))));const o=JSON.parse(raw);if(!o||typeof o!=="object")return;const map={theme:"t",caption:"c",message:"n",sender:"s",recipient:"r"};for(const [id,key] of Object.entries(map)){if(o[key]!==undefined)$(id).value=o[key];}if(o.c===undefined){const oldCaption=(o.h&&o.h!=="Somewhere beautiful"&&o.h!=="A little postcard")?o.h:"";$("caption").value=oldCaption;}else if(o.c==="wish you were here"){$("caption").value="";}photoData=o.p||"";paint();document.body.classList.add("viewer-mode");document.querySelector(".intro h1").textContent="A postcard for you.";document.querySelector(".intro p").textContent="A little something, sent with love.";document.title="A postcard for you · Littlepost";$("sideLabel").textContent="Your postcard · click to turn it over";$("card").setAttribute("aria-label","Turn over your postcard");}catch(e){}}
+function makeUrl(){paint();const url=location.href.split("#")[0]+"#"+pack();history.replaceState(null,"",url);return url;}
+function showShareTools(url){const status=$("status");status.innerHTML="Your postcard link is ready:";showStatus("Your postcard link is ready.");const link=document.createElement("a");link.href=url;link.textContent=url;link.target="_blank";link.rel="noopener";const copy=document.createElement("button");copy.className="secondary";copy.textContent="Copy link";copy.type="button";copy.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(url);copy.textContent="Copied!";}catch{window.prompt("Copy your postcard link:",url);}});const share=document.createElement("button");share.className="secondary";share.type="button";share.textContent="Share…";share.style.marginTop="8px";share.addEventListener("click",async()=>{if(navigator.share){try{await navigator.share({title:"A little postcard",text:"I made you a postcard!",url});}catch{}}else{try{await navigator.clipboard.writeText(url);share.textContent="Link copied";}catch{window.prompt("Copy your postcard link:",url);}}});status.append(link,copy,share);}
+$("createBtn").addEventListener("click",()=>{const url=makeUrl();showShareTools(url);});
+$("emailBtn").addEventListener("click",async()=>{
+ const email=$("recipientEmail").value.trim();
+ if(!email||!$("recipientEmail").checkValidity()){showStatus("Please enter a valid recipient email address first.",true);$("recipientEmail").focus();return;}
+ if($("website").value.trim())return;
+ const button=$("emailBtn");button.disabled=true;button.textContent="Sending postcard…";
+ try{
+  const blob=await makePostcardJpg();if(!blob)throw new Error("jpg");
+  const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});
+  const response=await fetch("/.netlify/functions/send-postcard",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({to:email,fromName:$("sender").value.trim(),message:$("message").value.trim(),postcard:dataUrl,website:$("website").value})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||"send");
+  showStatus("Your postcard has been sent to "+email+"!");
+ }catch(e){const message=(e&&e.message&&e.message!=="send"&&e.message!=="jpg")?e.message:"Littlepost couldn't send the email. Check the Resend sender setup and try again.";showStatus(message,true);}
+ finally{button.disabled=false;button.textContent="Send postcard by email ↗";}
+});
+readCard();paint();
+</script></body></html>
