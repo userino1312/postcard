@@ -37,9 +37,9 @@ export default async (request) => {
 
   const senderName = typeof body.fromName === "string" ? body.fromName.trim().slice(0, 100) : "";
   const note = typeof body.message === "string" ? body.message.trim().slice(0, 1200) : "";
-  const from = process.env.RESEND_FROM_EMAIL || "Littlepost <onboarding@resend.dev>";
-  const greeting = senderName ? `with love, ${escapeHtml(senderName)}` : "with love";
-  const noteHtml = note ? escapeHtml(note).replace(/\r?\n/g, "<br>") : "I made you a little postcard!";
+  const from = "Littlepost <postcards@thepost.cards>";
+  const greeting = senderName ? `with love, ${escapeHtml(senderName)}` ;
+  const noteHtml = note ? escapeHtml(note).replace(/\r?\n/g, "<br>") : "I wrote you a postcard!";
 
   let response;
   try {
